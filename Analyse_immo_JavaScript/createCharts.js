@@ -1,6 +1,5 @@
 // on génère les graphiques
 
-// createCharts.js
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 const fs = require('fs');
 
