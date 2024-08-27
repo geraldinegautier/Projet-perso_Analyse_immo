@@ -17,3 +17,10 @@ Ce projet a été réalisé dans 2 langages différents :
 - **Traitement des Données** : Calcul des prix moyens au m², du nombre de ventes et de la surface moyenne par quartier.
 - **Visualisation des Données** : Création de graphiques pour représenter visuellement les analyses.
 - **Exportation** : Génération d'un fichier Excel contenant les résultats d'analyse et les graphiques.
+
+## Comparaison des Performances
+Dans le cadre de ce projet, les performances des implémentations en Python et en JavaScript (Node.js) ont été comparées pour évaluer l'efficacité des deux solutions. Cette comparaison a été effectuée en mesurant :
+
+**Temps d'exécution total** : Le temps nécessaire pour exécuter l'ensemble du processus, depuis l'extraction des données jusqu'à la génération des résultats finaux.
+**Utilisation de la mémoire** : La quantité de mémoire utilisée au cours de l'exécution du script.
+Les résultats des performances ont été enregistrés dans des fichiers Excel distincts pour chaque langage, permettant ainsi une analyse détaillée des différences de performance entre les deux approches. Cette comparaison vise à identifier les forces et les faiblesses de chaque langage dans le contexte du traitement et de l'analyse de données immobilières.

@@ -6,99 +6,137 @@ from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 from openpyxl.utils.dataframe import dataframe_to_rows
 from mappings import section_to_quartier
+import time
+from memory_profiler import memory_usage
 
-# Récupération des données depuis l'API
-url = "https://api.cquest.org/dvf?code_postal=92140&type_local=Maison"
-response = requests.get(url)
-data = response.json()
+def main():
+    start_time = time.time()
 
-# Chargement des données dans Pandas
-resultats = data['resultats']
-df = pd.json_normalize(resultats)
+    # Récupération des données depuis l'API
+    url = "https://api.cquest.org/dvf?code_postal=92140&type_local=Maison"
+    response = requests.get(url)
+    data = response.json()
 
-# Ajout d'une colonne 'quartier' au DataFrame
-df['quartier'] = df['section'].map(section_to_quartier)
+    # Chargement des données dans Pandas
+    resultats = data['resultats']
+    df = pd.json_normalize(resultats)
 
-# Ajout d'une colonne 'prix_m2' au DataFrame
-# Calcul du prix par mètre carré
-df['prix_m2'] = df['valeur_fonciere'] / df['surface_relle_bati']
+    # Ajout d'une colonne 'quartier' au DataFrame
+    df['quartier'] = df['section'].map(section_to_quartier)
 
-# Analyse des données
+    # Ajout d'une colonne 'prix_m2' au DataFrame
+    # Calcul du prix par mètre carré
+    df['prix_m2'] = df['valeur_fonciere'] / df['surface_relle_bati']
 
-# Calcul du prix moyen au mètre carré par quartier
-prix_moyen_m2_par_quartier = df.groupby('quartier')['prix_m2'].mean().reset_index()
-prix_moyen_m2_par_quartier = prix_moyen_m2_par_quartier.sort_values(by='prix_m2', ascending=False)
+    # Analyse des données
 
-# Calcul du nombre de ventes par quartier
-nombre_ventes_par_quartier = df['quartier'].value_counts().reset_index()
-nombre_ventes_par_quartier.columns = ['quartier', 'nombre_ventes']
+    # Calcul du prix moyen au mètre carré par quartier
+    prix_moyen_m2_par_quartier = df.groupby('quartier')['prix_m2'].mean().reset_index()
+    prix_moyen_m2_par_quartier = prix_moyen_m2_par_quartier.sort_values(by='prix_m2', ascending=False)
 
-# Calcul de la surface moyenne des terrains par quartier
-surface_moyenne_par_quartier = df.groupby('quartier')['surface_terrain'].mean().reset_index()
-surface_moyenne_par_quartier = surface_moyenne_par_quartier.sort_values(by='surface_terrain', ascending=False)
+    # Calcul du nombre de ventes par quartier
+    nombre_ventes_par_quartier = df['quartier'].value_counts().reset_index()
+    nombre_ventes_par_quartier.columns = ['quartier', 'nombre_ventes']
 
-# Fusionner tous les résultats dans un seul DataFrame
-resultats_complets = pd.merge(prix_moyen_m2_par_quartier, nombre_ventes_par_quartier, on='quartier')
-resultats_complets = pd.merge(resultats_complets, surface_moyenne_par_quartier, on='quartier')
+    # Calcul de la surface moyenne des terrains par quartier
+    surface_moyenne_par_quartier = df.groupby('quartier')['surface_terrain'].mean().reset_index()
+    surface_moyenne_par_quartier = surface_moyenne_par_quartier.sort_values(by='surface_terrain', ascending=False)
 
-# Renommer les colonnes pour plus de clarté
-resultats_complets.columns = ['quartier', 'prix_moyen_m2', 'nombre_ventes', 'surface_moyenne']
+    # Fusionner tous les résultats dans un seul DataFrame
+    resultats_complets = pd.merge(prix_moyen_m2_par_quartier, nombre_ventes_par_quartier, on='quartier')
+    resultats_complets = pd.merge(resultats_complets, surface_moyenne_par_quartier, on='quartier')
 
-# Sauvegarder les résultats dans un fichier CSV
-resultats_complets.to_csv('resultats_immobiliers.csv', index=False)
+    # Renommer les colonnes pour plus de clarté
+    resultats_complets.columns = ['quartier', 'prix_moyen_m2', 'nombre_ventes', 'surface_moyenne']
 
-# Visualisation des données
+    # Sauvegarder les résultats dans un fichier CSV
+    resultats_complets.to_csv('resultats_immobiliers.csv', index=False)
 
-# Prix moyen au m² par quartier
-plt.figure(figsize=(12,6))
-sns.barplot(x=prix_moyen_m2_par_quartier['quartier'], y=prix_moyen_m2_par_quartier['prix_m2'], palette="viridis")
-plt.title('Prix moyen au m² par quartier')
-plt.xlabel('Quartier')
-plt.ylabel('Prix moyen au m²')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.savefig('prix_moyen_m2_par_quartier.png')  # Sauvegarder le graphique
-plt.close()
+    # Visualisation des données
 
-# Nombre de ventes par quartier
-plt.figure(figsize=(12,6))
-sns.barplot(x=nombre_ventes_par_quartier['quartier'], y=nombre_ventes_par_quartier['nombre_ventes'], palette="rocket")
-plt.title('Nombre de ventes par quartier')
-plt.xlabel('Quartier')
-plt.ylabel('Nombre de ventes')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.savefig('nombre_ventes_par_quartier.png')  # Sauvegarder le graphique
-plt.close()
+    # Prix moyen au m² par quartier
+    plt.figure(figsize=(12,6))
+    sns.barplot(x=prix_moyen_m2_par_quartier['quartier'], y=prix_moyen_m2_par_quartier['prix_m2'], palette="viridis")
+    plt.title('Prix moyen au m² par quartier')
+    plt.xlabel('Quartier')
+    plt.ylabel('Prix moyen au m²')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('prix_moyen_m2_par_quartier.png')  # Sauvegarder le graphique
+    plt.close()
 
-# Surface moyenne des terrains par quartier
-plt.figure(figsize=(12,6))
-sns.barplot(x=surface_moyenne_par_quartier['quartier'], y=surface_moyenne_par_quartier['surface_terrain'], palette="magma")
-plt.title('Surface moyenne des terrains par quartier')
-plt.xlabel('Quartier')
-plt.ylabel('Surface moyenne (m²)')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.savefig('surface_moyenne_par_quartier.png')  # Sauvegarder le graphique
-plt.close()
+    # Nombre de ventes par quartier
+    plt.figure(figsize=(12,6))
+    sns.barplot(x=nombre_ventes_par_quartier['quartier'], y=nombre_ventes_par_quartier['nombre_ventes'], palette="rocket")
+    plt.title('Nombre de ventes par quartier')
+    plt.xlabel('Quartier')
+    plt.ylabel('Nombre de ventes')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('nombre_ventes_par_quartier.png')  # Sauvegarder le graphique
+    plt.close()
 
-# Sauvegarder tous les résultats dans un fichier Excel avec les graphiques
-wb = Workbook()
-ws = wb.active
-ws.title = "Données"
+    # Surface moyenne des terrains par quartier
+    plt.figure(figsize=(12,6))
+    sns.barplot(x=surface_moyenne_par_quartier['quartier'], y=surface_moyenne_par_quartier['surface_terrain'], palette="magma")
+    plt.title('Surface moyenne des terrains par quartier')
+    plt.xlabel('Quartier')
+    plt.ylabel('Surface moyenne (m²)')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig('surface_moyenne_par_quartier.png')  # Sauvegarder le graphique
+    plt.close()
 
-# Sauvegarde du DataFrame dans une feuille Excel
-for r in dataframe_to_rows(resultats_complets, index=False, header=True):
-    ws.append(r)
+    # Sauvegarder tous les résultats dans un fichier Excel avec les graphiques
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Données"
 
-# Ajout des images
-image_files = ['prix_moyen_m2_par_quartier.png', 'nombre_ventes_par_quartier.png', 'surface_moyenne_par_quartier.png']
-start_row = len(resultats_complets) + 4  # Ajuste la ligne de départ pour les images
+    # Sauvegarde du DataFrame dans une feuille Excel
+    for r in dataframe_to_rows(resultats_complets, index=False, header=True):
+        ws.append(r)
 
-for image_file in image_files:
-    img = Image(image_file)
-    ws.add_image(img, f'A{start_row}')
-    start_row += 25  # Ajuste l'espacement vertical entre les images, changez la valeur selon la taille des images
+    # Ajout des images
+    image_files = ['prix_moyen_m2_par_quartier.png', 'nombre_ventes_par_quartier.png', 'surface_moyenne_par_quartier.png']
+    start_row = len(resultats_complets) + 4  # Ajuste la ligne de départ pour les images
 
-# Sauvegarder le fichier Excel
-wb.save("resultats_immobiliers_complets.xlsx")
+    for image_file in image_files:
+        img = Image(image_file)
+        ws.add_image(img, f'A{start_row}')
+        start_row += 25  # Ajuste l'espacement vertical entre les images, changez la valeur selon la taille des images
+
+    # Sauvegarder le fichier Excel
+    wb.save("resultats_immobiliers_complets.xlsx")
+
+    end_time = time.time()
+    
+    # Mesure du temps d'exécution
+    execution_time = end_time - start_time
+
+    # Retour des informations de performance
+    return execution_time
+
+if __name__ == "__main__":
+    # Mesure de la mémoire et exécution de la fonction principale
+    mem_usage, execution_time = memory_usage((main, ), retval=True, interval=0.1, timeout=None)
+
+    # Sauvegarde des résultats de performance dans un second fichier Excel
+    performance_wb = Workbook()
+    performance_ws = performance_wb.active
+    performance_ws.title = "Performance"
+
+    # Ajout des résultats de performance dans la feuille Excel
+    performance_data = {
+        "Mesure": ["Temps d'exécution (secondes)", "Utilisation mémoire maximale (MiB)"],
+        "Valeur": [execution_time, max(mem_usage)]
+    }
+
+    performance_df = pd.DataFrame(performance_data)
+
+    for r in dataframe_to_rows(performance_df, index=False, header=True):
+        performance_ws.append(r)
+
+    # Sauvegarde du fichier Excel de performance
+    performance_wb.save("performance_resultats.xlsx")
+
+    print("Les résultats de performance ont été stockés dans 'performance_resultats.xlsx'.")
