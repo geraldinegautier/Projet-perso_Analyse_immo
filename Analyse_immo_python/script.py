@@ -7,8 +7,9 @@ from openpyxl.drawing.image import Image
 from openpyxl.utils.dataframe import dataframe_to_rows
 from mappings import section_to_quartier
 import time
-from memory_profiler import memory_usage
+from memory_profiler import profile
 
+@profile
 def main():
     start_time = time.time()
 
@@ -117,26 +118,26 @@ def main():
     return execution_time
 
 if __name__ == "__main__":
-    # Mesure de la mémoire et exécution de la fonction principale
-    mem_usage, execution_time = memory_usage((main, ), retval=True, interval=0.1, timeout=None)
+     # Exécution du code principal
+    execution_time = main()
 
-    # Sauvegarde des résultats de performance dans un second fichier Excel
+    # Après que la fonction main() a été exécutée, capturer et enregistrer les résultats du profilage
+    with open(r"C:\Users\gverc\Code\Projets perso\Projets-perso\Analyse_immo_python\memory_profiling.txt", "r") as file:
+        profiling_data = file.readlines()
+
+    # Initialisation du fichier Excel
     performance_wb = Workbook()
-    performance_ws = performance_wb.active
-    performance_ws.title = "Performance"
+    memory_ws = performance_wb.active
+    memory_ws.title = "Profilage Mémoire"
 
-    # Ajout des résultats de performance dans la feuille Excel
-    performance_data = {
-        "Mesure": ["Temps d'exécution (secondes)", "Utilisation mémoire maximale (MiB)"],
-        "Valeur": [execution_time, max(mem_usage)]
-    }
+    # Ajout des résultats de profilage mémoire dans la feuille Excel
+    for line in profiling_data:
+        memory_ws.append([line.strip()])
 
-    performance_df = pd.DataFrame(performance_data)
+    # Ajout du temps d'exécution à la feuille Excel
+    memory_ws.append(["Temps d'exécution (secondes)", execution_time])
 
-    for r in dataframe_to_rows(performance_df, index=False, header=True):
-        performance_ws.append(r)
-
-    # Sauvegarde du fichier Excel de performance
+    # Sauvegarde du fichier Excel
     performance_wb.save("performance_resultats.xlsx")
 
     print("Les résultats de performance ont été stockés dans 'performance_resultats.xlsx'.")
