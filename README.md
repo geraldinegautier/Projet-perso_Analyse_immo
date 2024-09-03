@@ -1,5 +1,9 @@
 # Projet d'Analyse Immobilière
 
+## Constexte
+
+L'idée de départ était de manipuler la librairie Pandas en Python pour analyser des données. J'ai finalement décidé de réaliser un projet similaire en JavaScript puis de comparer les performances des deux langages.
+
 ## Description
 
 Ce projet vise à analyser des données immobilières à partir d'une API publique. Il fournit des analyses détaillées sur les prix au m², le nombre de ventes et la surface moyenne
