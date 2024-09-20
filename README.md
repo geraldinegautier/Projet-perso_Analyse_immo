@@ -1,6 +1,6 @@
 # Projet d'Analyse Immobilière
 
-## Constexte
+## Contexte
 
 L'idée de départ était de manipuler la librairie Pandas en Python pour analyser des données. J'ai finalement décidé de réaliser un projet similaire en JavaScript puis de comparer les performances des deux langages.
 
